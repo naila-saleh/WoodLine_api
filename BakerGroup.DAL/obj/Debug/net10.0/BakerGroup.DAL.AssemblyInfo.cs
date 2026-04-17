@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BakerGroup.DAL")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9150c9e17a74ea0ecd62d2a8a45e571c871d52be")]
 [assembly: System.Reflection.AssemblyProductAttribute("BakerGroup.DAL")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BakerGroup.DAL")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

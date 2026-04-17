@@ -11,4 +11,15 @@
       <Folder Include="Services\Interfaces\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\BakerGroup.DAL\BakerGroup.DAL.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Mapster" Version="10.0.7" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.6" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.6" />
+      <PackageReference Include="QuestPDF" Version="2026.2.4" />
+    </ItemGroup>
+
 </Project>
