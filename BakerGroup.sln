@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BakerGroup.PL", "BakerGroup.PL\BakerGroup.PL.csproj", "{1DC71A45-D87A-42B6-A7E4-C6BDE76F199C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BakerGroup.BLL", "BakerGroup.BLL\BakerGroup.BLL.csproj", "{A55F189B-EE3C-4383-A3A4-10A026FA85B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BakerGroup.DAL", "BakerGroup.DAL\BakerGroup.DAL.csproj", "{A52B7594-27A7-4E73-8C27-6B4A76D31D9C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DC71A45-D87A-42B6-A7E4-C6BDE76F199C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DC71A45-D87A-42B6-A7E4-C6BDE76F199C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DC71A45-D87A-42B6-A7E4-C6BDE76F199C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DC71A45-D87A-42B6-A7E4-C6BDE76F199C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A55F189B-EE3C-4383-A3A4-10A026FA85B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55F189B-EE3C-4383-A3A4-10A026FA85B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55F189B-EE3C-4383-A3A4-10A026FA85B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55F189B-EE3C-4383-A3A4-10A026FA85B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A52B7594-27A7-4E73-8C27-6B4A76D31D9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A52B7594-27A7-4E73-8C27-6B4A76D31D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A52B7594-27A7-4E73-8C27-6B4A76D31D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A52B7594-27A7-4E73-8C27-6B4A76D31D9C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
