@@ -7,11 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Services\Classes\" />
-      <Folder Include="Services\Interfaces\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\BakerGroup.DAL\BakerGroup.DAL.csproj" />
     </ItemGroup>
 
