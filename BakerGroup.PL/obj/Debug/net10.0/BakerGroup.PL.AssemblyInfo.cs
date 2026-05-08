@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BakerGroup.PL")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+47171be07180e7d6f0dbf28d4bb449db9e0960d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08408174ec313fb166e8c85dc913679df85c6585")]
 [assembly: System.Reflection.AssemblyProductAttribute("BakerGroup.PL")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BakerGroup.PL")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
