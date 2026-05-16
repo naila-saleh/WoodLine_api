@@ -12,6 +12,8 @@ using System.Text;
 using BakerGroup.PL.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Scalar.AspNetCore;
+using BakerGroup.DAL.Utilities;
+using BakerGroup.PL.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +66,18 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailSender, EmailSetting>();
 
+// New Registrations
+builder.Services.AddScoped<ISeedData, SeedData>();
+builder.Services.AddScoped<IFileService, FileService>();
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -72,9 +86,17 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Seeding
+var scope = app.Services.CreateScope();
+var objectOfSeedData = scope.ServiceProvider.GetService<ISeedData>();
+await objectOfSeedData.DataSeedingAsync();
+await objectOfSeedData.IdentityDataSeedingAsync();
 
 app.MapControllers();
 

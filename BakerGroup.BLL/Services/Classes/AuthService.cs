@@ -32,7 +32,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, HttpRequest requestHttp)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, HttpRequest requestHttp)
     {
         _logger.LogInformation($"[REGISTER] Starting registration for email: {request.Email}");
         var existingByEmail = await _authRepository.FindByEmailAsync(request.Email);
@@ -349,7 +349,7 @@ public class AuthService : IAuthService
         }
     }
     
-    private Task<(string Token, DateTime ExpiresAt)> BuildJwtAsync(ApplicationUser user)
+    private async Task<(string Token, DateTime ExpiresAt)> BuildJwtAsync(ApplicationUser user)
     {
         var jwtSection = _configuration.GetSection("Jwt");
         var key = jwtSection["Key"] ?? throw new InvalidOperationException("JWT key is missing.");
@@ -370,6 +370,13 @@ public class AuthService : IAuthService
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
 
+        // Include role claims so [Authorize(Roles = "...")] works
+        var roles = await _authRepository.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -380,7 +387,7 @@ public class AuthService : IAuthService
             expires: expiresAt,
             signingCredentials: credentials);
 
-        return Task.FromResult((new JwtSecurityTokenHandler().WriteToken(token), expiresAt));
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 
     private RefreshToken GenerateRefreshToken(string userId, string jwtId)

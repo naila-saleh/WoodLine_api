@@ -32,6 +32,11 @@ public class AuthRepository : IAuthRepository
         return _userManager.FindByIdAsync(userId);
     }
 
+    public Task<IList<string>> GetRolesAsync(ApplicationUser user)
+    {
+        return _userManager.GetRolesAsync(user);
+    }
+
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
     {
         return _userManager.CreateAsync(user, password);

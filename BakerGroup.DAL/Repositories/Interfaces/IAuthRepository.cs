@@ -8,6 +8,7 @@ public interface IAuthRepository
     Task<ApplicationUser?> FindByEmailAsync(string email);
     Task<ApplicationUser?> FindByUserNameAsync(string userName);
     Task<ApplicationUser?> FindByIdAsync(string userId);
+    Task<IList<string>> GetRolesAsync(ApplicationUser user);
     Task<IdentityResult> CreateAsync(ApplicationUser user, string password);
     Task<IdentityResult> DeleteAsync(ApplicationUser user);
     Task<bool> CheckPasswordAsync(ApplicationUser user, string password);
