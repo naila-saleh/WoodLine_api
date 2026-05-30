@@ -6,10 +6,10 @@ namespace BakerGroup.BLL.Services.Interfaces;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<UserCategoryResponse>> GetAllCategoriesForUserAsync();
-    Task<IEnumerable<AdminCategoryResponse>> GetAllCategoriesForAdminAsync();
-    Task<UserCategoryResponse?> GetCategoryByIdForUserAsync(string id);
-    Task<AdminCategoryResponse?> GetCategoryByIdForAdminAsync(string id);
+    Task<IEnumerable<UserCategoryResponse>> GetAllCategoriesForUserAsync(string language);
+    Task<IEnumerable<AdminCategoryResponse>> GetAllCategoriesForAdminAsync(string language);
+    Task<UserCategoryResponse?> GetCategoryByIdForUserAsync(string id, string language);
+    Task<AdminCategoryResponse?> GetCategoryByIdForAdminAsync(string id, string language);
     Task<AdminCategoryResponse> CreateCategoryAsync(AdminCreateCategoryRequest request);
     Task<bool> UpdateCategoryAsync(string id, AdminUpdateCategoryRequest request);
     Task<bool> DeleteCategoryAsync(string id);

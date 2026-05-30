@@ -1,5 +1,6 @@
 using BakerGroup.DAL.DTOs.Requests.Admin;
 using BakerGroup.BLL.Services.Interfaces;
+using BakerGroup.PL.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,15 +22,23 @@ public class CategoriesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var categories = await _categoryService.GetAllCategoriesForAdminAsync();
+        var language = LanguageHelper.GetLanguageFromHeader(Request);
+        var categories = (await _categoryService.GetAllCategoriesForAdminAsync(language)).ToList();
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        categories.NormalizeCategoryImages(baseUrl);
         return Ok(categories);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
-        var category = await _categoryService.GetCategoryByIdForAdminAsync(id);
+        var language = LanguageHelper.GetLanguageFromHeader(Request);
+        var category = await _categoryService.GetCategoryByIdForAdminAsync(id, language);
         if (category == null) return NotFound();
+
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        category.NormalizeCategoryImages(baseUrl);
+
         return Ok(category);
     }
 
@@ -38,10 +47,12 @@ public class CategoriesController : ControllerBase
     public async Task<IActionResult> Create([FromForm] AdminCreateCategoryRequest request)
     {
         var category = await _categoryService.CreateCategoryAsync(request);
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        category.NormalizeCategoryImages(baseUrl);
         return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
     }
 
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Update(string id, [FromForm] AdminUpdateCategoryRequest request)
     {

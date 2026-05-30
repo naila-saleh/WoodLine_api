@@ -10,6 +10,7 @@ namespace BakerGroup.BLL.Services.Classes;
 
 public class ProductService : IProductService
 {
+    private const string ArabicLanguagePrefix = "ar";
     private readonly IProductRepository _productRepository;
     private readonly IFileService _fileService;
 
@@ -19,53 +20,43 @@ public class ProductService : IProductService
         _fileService = fileService;
     }
 
-    public async Task<IEnumerable<UserProductResponse>> GetAllProductsForUserAsync()
+    public async Task<IEnumerable<UserProductResponse>> GetAllProductsForUserAsync(string language)
     {
-        var products = await _productRepository.GetAllAsync(p => p.Status == Status.Active, includeProperties: "SubImages");
-        return products.Select(p =>
-        {
-            var res = p.Adapt<UserProductResponse>();
-            res.SubImages = p.SubImages.Select(si => si.ImageName).ToList();
-            return res;
-        });
+        var products = await _productRepository.GetAllAsync(p => p.Status == Status.Active, includeProperties: "SubImages,Reviews.User");
+        return products.Select(p => MapUserProduct(p, language));
     }
 
-    public async Task<IEnumerable<AdminProductResponse>> GetAllProductsForAdminAsync()
+    public async Task<IEnumerable<AdminProductResponse>> GetAllProductsForAdminAsync(string language)
     {
-        var products = await _productRepository.GetAllAsync(includeProperties: "SubImages");
-        return products.Select(p =>
-        {
-            var res = p.Adapt<AdminProductResponse>();
-            res.SubImages = p.SubImages.Select(si => si.ImageName).ToList();
-            return res;
-        });
+        var products = await _productRepository.GetAllAsync(includeProperties: "SubImages,Reviews.User");
+        return products.Select(p => MapAdminProduct(p, language));
     }
 
-    public async Task<UserProductResponse?> GetProductByIdForUserAsync(string id)
+    public async Task<UserProductResponse?> GetProductByIdForUserAsync(string id, string language)
     {
-        var product = await _productRepository.GetByIdAsync(id, includeProperties: "SubImages");
+        var product = await _productRepository.GetByIdAsync(id, includeProperties: "SubImages,Reviews.User");
         if (product == null || product.Status != Status.Active) return null;
 
-        var res = product.Adapt<UserProductResponse>();
-        res.SubImages = product.SubImages.Select(si => si.ImageName).ToList();
-        return res;
+        return MapUserProduct(product, language);
     }
 
-    public async Task<AdminProductResponse?> GetProductByIdForAdminAsync(string id)
+    public async Task<AdminProductResponse?> GetProductByIdForAdminAsync(string id, string language)
     {
-        var product = await _productRepository.GetByIdAsync(id, includeProperties: "SubImages");
+        var product = await _productRepository.GetByIdAsync(id, includeProperties: "SubImages,Reviews.User");
         if (product == null) return null;
 
-        var res = product.Adapt<AdminProductResponse>();
-        res.SubImages = product.SubImages.Select(si => si.ImageName).ToList();
-        return res;
+        return MapAdminProduct(product, language);
     }
 
-    public async Task<AdminProductResponse> CreateProductAsync(AdminCreateProductRequest request)
+        public async Task<AdminProductResponse> CreateProductAsync(AdminCreateProductRequest request)
     {
         var product = request.Adapt<Product>();
-        // Ensure collections aren't overwritten to null by Mapster
-        product.SubImages = product.SubImages ?? new List<ProductImage>();
+
+        // Mapster may try to map IFormFileCollection -> List<ProductImage> producing empty
+        // ProductImage instances (ImageName == null). Ensure we don't persist such entries.
+        product.SubImages = product.SubImages?
+            .Where(si => !string.IsNullOrWhiteSpace(si.ImageName))
+            .ToList() ?? new List<ProductImage>();
 
         product.CreatedAt = DateTime.UtcNow;
         product.UpdatedAt = DateTime.UtcNow;
@@ -73,7 +64,7 @@ public class ProductService : IProductService
         // Make discount optional: default to 0 if not provided
         product.Discount = request.Discount ?? 0m;
 
-        if (request.MainImage != null)
+        if (request.MainImage is not null)
         {
             product.MainImage = await _fileService.UploadFileAsync(request.MainImage, "products/main");
         }
@@ -98,7 +89,7 @@ public class ProductService : IProductService
         await _productRepository.SaveAsync();
 
         var result = product.Adapt<AdminProductResponse>();
-        result.SubImages = (product.SubImages ?? new List<ProductImage>()).Select(si => si.ImageName).ToList();
+        result.SubImages = product.SubImages.Select(si => si.ImageName).ToList();
         return result;
     }
 
@@ -108,9 +99,12 @@ public class ProductService : IProductService
         if (product == null) return false;
 
         request.Adapt(product);
-        // Ensure collections aren't null after mapping
-        product.SubImages = product.SubImages ?? new List<ProductImage>();
 
+        // After mapping, remove any placeholder sub-images that don't have ImageName set
+        product.SubImages = product.SubImages?
+            .Where(si => !string.IsNullOrWhiteSpace(si.ImageName))
+            .ToList() ?? new List<ProductImage>();
+        // Ensure collections aren't null after mapping
         product.UpdatedAt = DateTime.UtcNow;
 
         // Apply optional discount if provided
@@ -178,5 +172,71 @@ public class ProductService : IProductService
         product.UpdatedAt = DateTime.UtcNow;
         _productRepository.Update(product);
         return await _productRepository.SaveAsync();
+    }
+
+    private static bool IsArabic(string language) =>
+        !string.IsNullOrWhiteSpace(language) && language.StartsWith(ArabicLanguagePrefix, StringComparison.OrdinalIgnoreCase);
+
+    private static UserProductResponse MapUserProduct(Product product, string language)
+    {
+        return new UserProductResponse
+        {
+            Id = product.Id,
+            Name = IsArabic(language) ? product.NameAr : product.Name,
+            Description = IsArabic(language) ? product.DescriptionAr : product.Description,
+            Price = product.Price,
+            Discount = product.Discount,
+            MainImage = product.MainImage,
+            Rate = product.Rate,
+            CategoryId = product.CategoryId,
+            SubImages = product.SubImages.Select(si => si.ImageName).ToList(),
+            Reviews = product.Reviews
+                .Where(r => r.Status == Status.Active)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new UserReviewResponse
+                {
+                    Id = r.Id,
+                    Rate = r.Rate,
+                    Comment = r.Comment,
+                    UserName = r.User.UserName ?? "Unknown",
+                    ProductId = r.ProductId,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToList()
+        };
+    }
+
+    private static AdminProductResponse MapAdminProduct(Product product, string language)
+    {
+        return new AdminProductResponse
+        {
+            Id = product.Id,
+            Name = IsArabic(language) ? product.NameAr : product.Name,
+            Description = IsArabic(language) ? product.DescriptionAr : product.Description,
+            Price = product.Price,
+            Discount = product.Discount,
+            Quantity = product.Quantity,
+            MainImage = product.MainImage,
+            Rate = product.Rate,
+            CategoryId = product.CategoryId,
+            Status = product.Status,
+            SubImages = product.SubImages.Select(si => si.ImageName).ToList(),
+            Reviews = product.Reviews
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new AdminReviewResponse
+                {
+                    Id = r.Id,
+                    Rate = r.Rate,
+                    Comment = r.Comment,
+                    ProductId = r.ProductId,
+                    UserId = r.UserId,
+                    UserName = r.User.UserName ?? "Unknown",
+                    Status = r.Status,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToList(),
+            CreatedAt = product.CreatedAt,
+            UpdatedAt = product.UpdatedAt
+        };
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using BakerGroup.BLL.Services.Interfaces;
 using BakerGroup.DAL.DTOs.Requests.Admin;
 using BakerGroup.DAL.DTOs.Responses.Admin;
@@ -12,6 +10,7 @@ namespace BakerGroup.BLL.Services.Classes;
 
 public class CategoryService : ICategoryService
 {
+    private const string ArabicLanguagePrefix = "ar";
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFileService _fileService;
 
@@ -21,29 +20,52 @@ public class CategoryService : ICategoryService
         _fileService = fileService;
     }
 
-    public async Task<IEnumerable<UserCategoryResponse>> GetAllCategoriesForUserAsync()
+    public async Task<IEnumerable<UserCategoryResponse>> GetAllCategoriesForUserAsync(string language)
     {
-        var categories = await _categoryRepository.GetAllAsync(c => c.Status == Status.Active);
-        return categories.Adapt<IEnumerable<UserCategoryResponse>>();
+        var categories = (await _categoryRepository.GetAllAsync(c => c.Status == Status.Active, includeProperties: "Products,Products.SubImages")).ToList();
+        var result = new List<UserCategoryResponse>();
+
+        foreach (var category in categories)
+        {
+            category.Products = category.Products
+                .Where(p => p.Status == Status.Active)
+                .ToList();
+
+            result.Add(MapUserCategory(category, language));
+        }
+
+        return result;
     }
 
-    public async Task<IEnumerable<AdminCategoryResponse>> GetAllCategoriesForAdminAsync()
+    public async Task<IEnumerable<AdminCategoryResponse>> GetAllCategoriesForAdminAsync(string language)
     {
-        var categories = await _categoryRepository.GetAllAsync();
-        return categories.Adapt<IEnumerable<AdminCategoryResponse>>();
+        var categories = (await _categoryRepository.GetAllAsync(includeProperties: "Products,Products.SubImages")).ToList();
+        var result = new List<AdminCategoryResponse>();
+
+        foreach (var category in categories)
+        {
+            result.Add(MapAdminCategory(category, language));
+        }
+
+        return result;
     }
 
-    public async Task<UserCategoryResponse?> GetCategoryByIdForUserAsync(string id)
+    public async Task<UserCategoryResponse?> GetCategoryByIdForUserAsync(string id, string language)
     {
-        var category = await _categoryRepository.GetByIdAsync(id, includeProperties: "Products");
+        var category = await _categoryRepository.GetByIdAsync(id, includeProperties: "Products,Products.SubImages");
         if (category == null || category.Status != Status.Active) return null;
-        return category.Adapt<UserCategoryResponse>();
+
+        category.Products = category.Products
+            .Where(p => p.Status == Status.Active)
+            .ToList();
+
+        return MapUserCategory(category, language);
     }
 
-    public async Task<AdminCategoryResponse?> GetCategoryByIdForAdminAsync(string id)
+    public async Task<AdminCategoryResponse?> GetCategoryByIdForAdminAsync(string id, string language)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
-        return category?.Adapt<AdminCategoryResponse>();
+        var category = await _categoryRepository.GetByIdAsync(id, includeProperties: "Products,Products.SubImages");
+        return category == null ? null : MapAdminCategory(category, language);
     }
 
     public async Task<AdminCategoryResponse> CreateCategoryAsync(AdminCreateCategoryRequest request)
@@ -126,5 +148,63 @@ public class CategoryService : ICategoryService
         category.UpdatedAt = DateTime.UtcNow;
         _categoryRepository.Update(category);
         return await _categoryRepository.SaveAsync();
+    }
+
+    private static bool IsArabic(string language) =>
+        !string.IsNullOrWhiteSpace(language) && language.StartsWith(ArabicLanguagePrefix, StringComparison.OrdinalIgnoreCase);
+
+    private static UserCategoryResponse MapUserCategory(Category category, string language)
+    {
+        var products = category.Products;
+        return new UserCategoryResponse
+        {
+            Id = category.Id,
+            Name = IsArabic(language) ? category.NameAr : category.Name,
+            Image = category.Image,
+            Products = products.Select(product => new UserProductResponse
+            {
+                Id = product.Id,
+                Name = IsArabic(language) ? product.NameAr : product.Name,
+                Description = IsArabic(language) ? product.DescriptionAr : product.Description,
+                Price = product.Price,
+                Discount = product.Discount,
+                MainImage = product.MainImage,
+                Rate = product.Rate,
+                CategoryId = product.CategoryId,
+                SubImages = product.SubImages.Select(si => si.ImageName).ToList(),
+                Reviews = new List<UserReviewResponse>()
+            }).ToList()
+        };
+    }
+
+    private static AdminCategoryResponse MapAdminCategory(Category category, string language)
+    {
+        var products = category.Products;
+        return new AdminCategoryResponse
+        {
+            Id = category.Id,
+            Name = IsArabic(language) ? category.NameAr : category.Name,
+            Image = category.Image,
+            Status = category.Status,
+            CreatedAt = category.CreatedAt,
+            UpdatedAt = category.UpdatedAt,
+            Products = products.Select(product => new AdminProductResponse
+            {
+                Id = product.Id,
+                Name = IsArabic(language) ? product.NameAr : product.Name,
+                Description = IsArabic(language) ? product.DescriptionAr : product.Description,
+                Price = product.Price,
+                Discount = product.Discount,
+                Quantity = product.Quantity,
+                MainImage = product.MainImage,
+                Rate = product.Rate,
+                CategoryId = product.CategoryId,
+                Status = product.Status,
+                SubImages = product.SubImages.Select(si => si.ImageName).ToList(),
+                Reviews = new List<AdminReviewResponse>(),
+                CreatedAt = product.CreatedAt,
+                UpdatedAt = product.UpdatedAt
+            }).ToList()
+        };
     }
 }

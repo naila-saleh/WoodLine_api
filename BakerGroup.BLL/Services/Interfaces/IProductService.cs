@@ -6,10 +6,10 @@ namespace BakerGroup.BLL.Services.Interfaces;
 
 public interface IProductService
 {
-    Task<IEnumerable<UserProductResponse>> GetAllProductsForUserAsync();
-    Task<IEnumerable<AdminProductResponse>> GetAllProductsForAdminAsync();
-    Task<UserProductResponse?> GetProductByIdForUserAsync(string id);
-    Task<AdminProductResponse?> GetProductByIdForAdminAsync(string id);
+    Task<IEnumerable<UserProductResponse>> GetAllProductsForUserAsync(string language);
+    Task<IEnumerable<AdminProductResponse>> GetAllProductsForAdminAsync(string language);
+    Task<UserProductResponse?> GetProductByIdForUserAsync(string id, string language);
+    Task<AdminProductResponse?> GetProductByIdForAdminAsync(string id, string language);
     Task<AdminProductResponse> CreateProductAsync(AdminCreateProductRequest request);
     Task<bool> UpdateProductAsync(string id, AdminUpdateProductRequest request);
     Task<bool> DeleteProductAsync(string id);

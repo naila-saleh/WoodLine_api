@@ -2,6 +2,7 @@ using BakerGroup.DAL.DTOs.Requests.Admin;
 using BakerGroup.BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BakerGroup.PL.Utilities;
 
 namespace BakerGroup.PL.Areas.Admin.Controllers;
 
@@ -21,15 +22,20 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var products = await _productService.GetAllProductsForAdminAsync();
+        var language = LanguageHelper.GetLanguageFromHeader(Request);
+        var products = (await _productService.GetAllProductsForAdminAsync(language)).ToList();
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        products.NormalizeProductImages(baseUrl);
         return Ok(products);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
-        var product = await _productService.GetProductByIdForAdminAsync(id);
+        var language = LanguageHelper.GetLanguageFromHeader(Request);
+        var product = await _productService.GetProductByIdForAdminAsync(id, language);
         if (product == null) return NotFound();
+        product.NormalizeProductImages($"{Request.Scheme}://{Request.Host}");
         return Ok(product);
     }
 
@@ -38,10 +44,11 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> Create([FromForm] AdminCreateProductRequest request)
     {
         var product = await _productService.CreateProductAsync(request);
+        product.NormalizeProductImages($"{Request.Scheme}://{Request.Host}");
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Update(string id, [FromForm] AdminUpdateProductRequest request)
     {
