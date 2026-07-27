@@ -1,4 +1,5 @@
 using BakerGroup.BLL.Services.Interfaces;
+using BakerGroup.DAL.DTOs.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BakerGroup.PL.Utilities;
@@ -19,12 +20,12 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] ProductQueryRequest query)
     {
         var language = LanguageHelper.GetLanguageFromHeader(Request);
-        var products = (await _productService.GetAllProductsForUserAsync(language)).ToList();
+        var products = await _productService.GetProductsForUserAsync(query, language);
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        products.NormalizeProductImages(baseUrl);
+        products.Items.NormalizeProductImages(baseUrl);
         return Ok(products);
     }
 

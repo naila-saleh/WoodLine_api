@@ -1,4 +1,5 @@
 using BakerGroup.DAL.DTOs.Requests.Admin;
+using BakerGroup.DAL.DTOs.Requests;
 using BakerGroup.BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,13 +21,13 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] ProductQueryRequest query)
     {
         var language = LanguageHelper.GetLanguageFromHeader(Request);
-        var products = (await _productService.GetAllProductsForAdminAsync(language)).ToList();
+        var paginatedProducts = await _productService.GetProductsForAdminAsync(query, language);
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        products.NormalizeProductImages(baseUrl);
-        return Ok(products);
+        paginatedProducts.Items.NormalizeProductImages(baseUrl);
+        return Ok(paginatedProducts);
     }
 
     [HttpGet("{id}")]
@@ -69,6 +70,46 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> ToggleStatus(string id)
     {
         var result = await _productService.ToggleProductStatusAsync(id);
+        if (!result) return NotFound();
+        return NoContent();
+    }
+
+    [HttpPut("{id}/main-image")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateMainImage(string id, [FromForm] AdminUpdateMainImageRequest request)
+    {
+        if (request.MainImage == null || request.MainImage.Length == 0)
+            return BadRequest("Main image is required");
+
+        var result = await _productService.UpdateMainImageAsync(id, request.MainImage);
+        if (!result) return NotFound();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/main-image")]
+    public async Task<IActionResult> DeleteMainImage(string id)
+    {
+        var result = await _productService.DeleteMainImageAsync(id);
+        if (!result) return NotFound();
+        return NoContent();
+    }
+
+    [HttpPost("{id}/sub-images")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> AddSubImages(string id, [FromForm] AdminAddSubImagesRequest request)
+    {
+        if (request.SubImages == null || request.SubImages.Count == 0)
+            return BadRequest("At least one sub-image is required");
+
+        var result = await _productService.AddSubImagesAsync(id, request.SubImages);
+        if (!result) return NotFound();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/sub-images/{subImageId}")]
+    public async Task<IActionResult> DeleteSubImage(string id, string subImageId)
+    {
+        var result = await _productService.DeleteSubImageAsync(id, subImageId);
         if (!result) return NotFound();
         return NoContent();
     }

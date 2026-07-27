@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/c/EN4+jdyk=",
+  "dgSpecHash": "G4/RPlnkS5c=",
   "success": true,
   "projectFilePath": "D:\\Users\\hp\\RiderProjects\\BakerGroup\\BakerGroup.PL\\BakerGroup.PL.csproj",
   "expectedPackageFiles": [
@@ -153,6 +153,18 @@
     "C:\\Users\\hp\\.nuget\\packages\\system.security.cryptography.protecteddata\\9.0.6\\system.security.cryptography.protecteddata.9.0.6.nupkg.sha512"
   ],
   "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "projectPath": "D:\\Users\\hp\\RiderProjects\\BakerGroup\\BakerGroup.PL\\BakerGroup.PL.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Users\\hp\\RiderProjects\\BakerGroup\\BakerGroup.PL\\BakerGroup.PL.csproj",
+      "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
     {
       "code": "NU1901",
       "level": "Warning",

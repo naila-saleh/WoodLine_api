@@ -36,6 +36,43 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await query.ToListAsync();
     }
 
+    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? filter = null, string? includeProperties = null, Expression<Func<T, object>>? orderBy = null)
+    {
+        IQueryable<T> query = _dbSet;
+
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+
+        // Count before applying includes to avoid counting duplicate rows from joins
+        int totalCount = await query.CountAsync();
+
+        if (orderBy != null)
+        {
+            query = query.OrderByDescending(orderBy);
+        }
+
+        // Apply Skip/Take before includes to get correct pagination
+        query = query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize);
+
+        // Apply includes with AsSplitQuery to avoid duplicate rows from joins
+        if (includeProperties != null)
+        {
+            query = query.AsSplitQuery();
+            foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProp);
+            }
+        }
+
+        var items = await query.ToListAsync();
+
+        return (items, totalCount);
+    }
+
     public async Task<T?> GetByIdAsync(string id, string? includeProperties = null)
     {
         IQueryable<T> query = _dbSet;
