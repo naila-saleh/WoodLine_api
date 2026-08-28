@@ -1,0 +1,6 @@
+@WoodLine.PL_HostAddress = http://localhost:5111
+
+GET {{WoodLine.PL_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
